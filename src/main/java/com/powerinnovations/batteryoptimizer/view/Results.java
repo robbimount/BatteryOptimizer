@@ -2,6 +2,9 @@ package com.powerinnovations.batteryoptimizer.view;
 
 import com.powerinnovations.batteryoptimizer.model.resultModel;
 import com.powerinnovations.batteryoptimizer.model.Pack;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -20,6 +23,15 @@ public class Results extends javax.swing.JFrame {
     public Results(List<Pack> packs) {
         initComponents();
         resultsTable.setModel(new resultModel(packs));
+        decorate();
+    }
+    
+    private void decorate() {
+        this.setTitle("Optimizer Results: Sorted by Impedance");
+        URL url = ClassLoader.getSystemResource("logo.png");
+        Toolkit kit = Toolkit.getDefaultToolkit();
+        Image img = kit.createImage(url);
+        this.setIconImage(img);
     }
 
     /**

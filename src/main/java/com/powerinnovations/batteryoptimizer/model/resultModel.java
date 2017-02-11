@@ -21,6 +21,7 @@ public class resultModel extends AbstractTableModel {
      */
     public resultModel() {
         this.df = new DecimalFormat("#0.00");
+        
     }
 
     /**
@@ -51,7 +52,7 @@ public class resultModel extends AbstractTableModel {
      */
     @Override
     public int getColumnCount() {
-        int size = 14;
+        int size = pcs.get(0).getCellCount()+2; //numbe of cells plus two columns for line# and average
         return size;
     }
 
@@ -68,7 +69,7 @@ public class resultModel extends AbstractTableModel {
         String value = "";
         if (columnIndex == 0) {
             value = pcs.get(rowIndex).getID();
-        } else if (columnIndex == 13) {
+        } else if (columnIndex == pcs.get(0).getCellCount()+1) {
             value = df.format(pcs.get(rowIndex).calculateSpreadImp() * 100) + "%";
         } else {
             value = pcs.get(rowIndex).getCells().get(columnIndex - 1).getAddress() + " (" + df.format(pcs.get(rowIndex).getCells().get(columnIndex - 1).getImpedance() * 1000) + " mΩ)";
@@ -87,7 +88,7 @@ public class resultModel extends AbstractTableModel {
     public String getColumnName(int column) {
         if (column == 0) {
             return "Pack:";
-        } else if (column == 13) {
+        } else if (column == pcs.get(0).getCellCount()+1) {
             return "Spread:";
         } else {
             return String.valueOf(column) + ":";

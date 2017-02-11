@@ -2,6 +2,7 @@ package com.powerinnovations.batteryoptimizer.model;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -104,6 +105,15 @@ public final class Pack implements Comparable {
     }
 
     /**
+     * Returns the number of cells in the pack.
+     *
+     * @return the Cell count.
+     */
+    public int getCellCount() {
+        return cells.size();
+    }
+
+    /**
      * Implementation of the Comparable interface for collection sorting.
      *
      * @param o The comparable object
@@ -118,6 +128,27 @@ public final class Pack implements Comparable {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * Used for comparing two objects for addition to a unique set.
+     *
+     * @param p the compared Pack element
+     * @return true if the objects have the same ID
+     */
+    @Override
+    public boolean equals(Object p) {
+        if (!(p instanceof Pack)) {
+            return false;
+        }
+        return ((Pack) p).getID().equals(getID());
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        return hash;
     }
 
 }

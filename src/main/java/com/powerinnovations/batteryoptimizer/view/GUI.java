@@ -2,20 +2,13 @@ package com.powerinnovations.batteryoptimizer.view;
 
 import com.powerinnovations.batteryoptimizer.service.ExceptionHandler;
 import com.powerinnovations.batteryoptimizer.model.Pack;
-import com.powerinnovations.batteryoptimizer.model.Cell;
-import java.awt.Desktop;
+import com.powerinnovations.batteryoptimizer.service.PackUtils;
 import java.awt.Image;
 import java.awt.Toolkit;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -25,10 +18,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
 
 /**
  * The main hub of this program. Contains the display logic as well as the main method.
@@ -36,10 +25,10 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @author robbi.mount
  * @version 1.0 June 2016
  */
-public final class View extends javax.swing.JFrame {
+public final class GUI extends javax.swing.JFrame {
 
     private final DecimalFormat df = new DecimalFormat("#0.00");
-    private List<Pack> packList = new LinkedList();
+    private List<Pack> packList = Collections.EMPTY_LIST;
     private boolean running = false;
     private final int optimizedStandard = 10000; //An arbitrary large number of failed improvement attempts that is a safe indication that optimization has occured.
 
@@ -49,12 +38,13 @@ public final class View extends javax.swing.JFrame {
      * @param args
      */
     public static void main(String[] args) {
+        //TODO: Create Test Cases
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-            new View().setVisible(true);
+            new GUI().setVisible(true);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-            Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -62,18 +52,19 @@ public final class View extends javax.swing.JFrame {
      * Creates new form View
      *
      */
-    public View() {
-        try {
-            initComponents();
-            this.setTitle("Battery Impedance Optimizer");
-            URL url = ClassLoader.getSystemResource("logo.png");
-            Toolkit kit = Toolkit.getDefaultToolkit();
-            Image img = kit.createImage(url);
-            this.setIconImage(img);
-            method.setToolTipText("If selected, the decrease method will select random packs.  If not selected, the method will always attempt to decrease the max cell.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public GUI() {
+        initComponents();
+        decorate();
+    }
+
+    private void decorate() {
+        this.setTitle("Battery Impedance Optimizer");
+        URL url = ClassLoader.getSystemResource("logo.png");
+        Toolkit kit = Toolkit.getDefaultToolkit();
+        Image img = kit.createImage(url);
+        this.setIconImage(img);
+        method.setToolTipText("If selected, the decrease method will select random packs.  "
+                + "If not selected, the method will always attempt to decrease the max cell.");
     }
 
     /**
@@ -87,52 +78,11 @@ public final class View extends javax.swing.JFrame {
                 grid.add(new JLabel(df.format(np.calculateSpreadImp() * 100d) + "%"));
             });
         }
-        averageSpreadLabel.setText(df.format(calculateAverageImp() * 100d) + "%");
+        averageSpreadLabel.setText(df.format(PackUtils.calculateAverageImp(packList) * 100d) + "%");
         numOfPacksLabel.setText(String.valueOf(packList.size()));
-        highestSpreadLabel.setText(df.format(calculateHigh() * 100d) + "%");
-        lowestSpreadLabel.setText(df.format(calculateLow() * 100d) + "%");
+        highestSpreadLabel.setText(df.format(PackUtils.calculateHigh(packList) * 100d) + "%");
+        lowestSpreadLabel.setText(df.format(PackUtils.calculateLow(packList) * 100d) + "%");
         grid.updateUI();
-    }
-
-    /**
-     * Calculates the average pack impedance based upon the entire collection of Pack objects.
-     *
-     * @return the average pack impedance.
-     */
-    private double calculateAverageImp() {
-        double average = 0;
-        average = packList.stream().map((np) -> np.calculateSpreadImp()).reduce(average, (accumulator, _item) -> accumulator + _item);
-        return average / packList.size();
-    }
-
-    /**
-     * Finds the lowest occurring pack impedance from the Pack collection.
-     *
-     * @return the lowest occurring pack impedance.
-     */
-    private double calculateLow() {
-        double low = 999;
-        for (Pack np : packList) {
-            if (np.calculateSpreadImp() < low) {
-                low = np.calculateSpreadImp();
-            }
-        }
-        return low;
-    }
-
-    /**
-     * Finds the highest occurring pack impedance form the Pack collection.
-     *
-     * @return the highest occurring pack impedance.
-     */
-    private double calculateHigh() {
-        double hi = 0;
-        for (Pack np : packList) {
-            if (np.calculateSpreadImp() > hi) {
-                hi = np.calculateSpreadImp();
-            }
-        }
-        return hi;
     }
 
     /**
@@ -145,6 +95,7 @@ public final class View extends javax.swing.JFrame {
      * lower end state of either metric by brute processor power and randomization.
      */
     private void go() {
+        //TODO: Move to the util class.
         new Thread() {
             @Override
             public void run() {
@@ -158,11 +109,11 @@ public final class View extends javax.swing.JFrame {
 
                         //Gather the specimens
                         if (method.isSelected()) {
-                            baseline = calculateAverageImp();
+                            baseline = PackUtils.calculateAverageImp(packList);
                             workingA = packList.remove(ran.nextInt(packList.size()));
                             workingB = packList.remove(ran.nextInt(packList.size()));
                         } else {
-                            baseline = calculateHigh();
+                            baseline = PackUtils.calculateHigh(packList);
                             workingA = Collections.max(packList);
                             packList.remove(workingA);
                             workingB = packList.remove(ran.nextInt(packList.size()));
@@ -181,9 +132,9 @@ public final class View extends javax.swing.JFrame {
                         //Check the result
                         double result = 0;
                         if (method.isSelected()) {
-                            result = calculateAverageImp();
+                            result = PackUtils.calculateAverageImp(packList);
                         } else {
-                            result = calculateHigh();
+                            result = PackUtils.calculateHigh(packList);
                         }
 
                         //If we didn't improve, undo.
@@ -204,7 +155,7 @@ public final class View extends javax.swing.JFrame {
                         }
                         updateDisplay();
                     } catch (Exception e) {
-                        Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, e);
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, e);
                     }
                 }
             }
@@ -481,6 +432,7 @@ public final class View extends javax.swing.JFrame {
      * @param evt
      */
     private void resultsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resultsActionPerformed
+        packList.sort((p1, p2) -> p1.compareTo(p2));
         new Results(packList).setVisible(true);
 
     }//GEN-LAST:event_resultsActionPerformed
@@ -491,139 +443,57 @@ public final class View extends javax.swing.JFrame {
      * @param evt
      */
     private void exportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportActionPerformed
-        FileOutputStream fos = null;
         try {
-            //Build the document
-            Workbook wb = new HSSFWorkbook();
-            Sheet sheet = wb.createSheet("Battery Sort Results");
-            Row row = sheet.createRow(0);
-            row.createCell(0).setCellValue("Pack Num:");
-            row.createCell(1).setCellValue("Cell 1:");
-            row.createCell(2).setCellValue("Cell 2:");
-            row.createCell(3).setCellValue("Cell 3:");
-            row.createCell(4).setCellValue("Cell 4:");
-            row.createCell(5).setCellValue("Cell 5:");
-            row.createCell(6).setCellValue("Cell 6:");
-            row.createCell(7).setCellValue("Cell 7:");
-            row.createCell(8).setCellValue("Cell 8:");
-            row.createCell(9).setCellValue("Cell 9:");
-            row.createCell(10).setCellValue("Cell 10:");
-            row.createCell(11).setCellValue("Cell 11:");
-            row.createCell(12).setCellValue("Cell 12:");
-            row.createCell(13).setCellValue("Average Impedance:");
-
-            //Populate the Data
-            int rowCount = 1;
-            for (Pack p : packList) {
-                Row r = sheet.createRow(rowCount);
-                int cellCount = 1;
-                r.createCell(0).setCellValue(p.getID());
-                for (Cell c : p.getCells()) {
-                    r.createCell(cellCount).setCellValue(c.getAddress() + " (" + df.format(c.getImpedance() * 1000) + " mΩ)");
-                    cellCount++;
-                }
-                r.createCell(cellCount).setCellValue(df.format(p.calculateSpreadImp() * 100) + "%");
-                rowCount++;
-            }
-
-            //Format the sheet for easy Viewing
-            sheet.autoSizeColumn(0);
-            sheet.autoSizeColumn(1);
-            sheet.autoSizeColumn(2);
-            sheet.autoSizeColumn(3);
-            sheet.autoSizeColumn(4);
-            sheet.autoSizeColumn(5);
-            sheet.autoSizeColumn(6);
-            sheet.autoSizeColumn(7);
-            sheet.autoSizeColumn(8);
-            sheet.autoSizeColumn(9);
-            sheet.autoSizeColumn(10);
-            sheet.autoSizeColumn(11);
-            sheet.autoSizeColumn(12);
-            sheet.autoSizeColumn(13);
-
-            //Open a temporary file
-            File file = File.createTempFile("sortexport", ".xls");
-            fos = new FileOutputStream(file);
-            wb.write(fos);
-            wb.close();
-            fos.close();
-            Desktop.getDesktop().open(file);
+            packList.sort((p1, p2) -> p1.compareTo(p2));
+            PackUtils.exportPackDetailsToExcel(packList);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage());
-            Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            try {
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage());
-                Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-
     }//GEN-LAST:event_exportActionPerformed
 
     /**
      * Launches a file chooser window to select the CSV file containing the original battery data.
-     * Then initial sorting and assembly of the Pack and Cell collections takes place. The main View
+     * Then initial sorting and assembly of the Pack and Cell collections takes place. The main GUI
      * object is then updated.
      *
      * @param evt
      */
     private void openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openActionPerformed
-        String[] cellLocations = {"1-1", "1-2", "1-3", "2-1", "2-2", "2-3", "3-1", "3-2", "3-3", "4-1", "4-2", "4-3"};
-        JFileChooser fc = new JFileChooser();
-        int option;
-        option = fc.showOpenDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
-            File selFile = fc.getSelectedFile();
-
-            BufferedReader br = null;
-            @SuppressWarnings("UnusedAssignment")
-            String line = null;
-            String cvsSplitBy = ",";
-            LinkedList<Pack> packs = new LinkedList();
-
-            try {
-                br = new BufferedReader(new FileReader(selFile));
-                br.readLine();
-                while ((line = br.readLine()) != null) {
-                    // use comma as separator
-                    String[] packCSV = line.split(cvsSplitBy);
-
-                    Pack p = new Pack(packCSV[0]);
-                    for (int i = 1; i < 13; i++) {
-                        p.addCell(new Cell(packCSV[0] + "_" + cellLocations[i - 1], Double.parseDouble(packCSV[i])));
-                    }
-                    packs.add(p);
-                }
-                this.packList = packs;
-                start.setEnabled(true);
-                export.setEnabled(true);
-                results.setEnabled(true);
-                open.setEnabled(false);
-                updateDisplay();
-
-            } catch (FileNotFoundException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage());
-                Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, e);
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(this, e.getMessage());
-                Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, e);
-            } finally {
-                if (br != null) {
+        try {
+            int numCellsPerPack = 0;
+            //TODO: Fix null pointer ex here
+            numCellsPerPack = Integer.parseInt(JOptionPane.showInputDialog(this,
+                    "How many cells will each pack have?\n(Note: the number of cells "
+                    + "provided must be a multiple of this value.", 0));
+            if (numCellsPerPack > 1) {
+                JFileChooser fc = new JFileChooser();
+                int option;
+                option = fc.showOpenDialog(this);
+                if (option == JFileChooser.APPROVE_OPTION) {
                     try {
-                        br.close();
+                        this.packList = PackUtils
+                                .createPackListFromCsv(fc.getSelectedFile(), numCellsPerPack);
+                        start.setEnabled(true);
+                        export.setEnabled(true);
+                        results.setEnabled(true);
+                        open.setEnabled(false);
+                        updateDisplay();
                     } catch (IOException e) {
                         JOptionPane.showMessageDialog(this, e.getMessage());
-                        Logger.getLogger(View.class.getName()).log(Level.SEVERE, null, e);
+                        Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, e);
                     }
                 }
+            } else {
+                throw new NumberFormatException("Import failed: Enter only integers greater than "
+                        + "1 for the size.");
             }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+
     }//GEN-LAST:event_openActionPerformed
 
 

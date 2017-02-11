@@ -1,6 +1,6 @@
 package com.powerinnovations.batteryoptimizer.service;
 
-import com.powerinnovations.batteryoptimizer.view.View;
+import com.powerinnovations.batteryoptimizer.view.GUI;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,7 +29,7 @@ import java.util.logging.SimpleFormatter;
  */
 public class ExceptionHandler implements UncaughtExceptionHandler {
 
-    private static final Logger log = Logger.getLogger(View.class.getName());
+    private static final Logger log = Logger.getLogger(GUI.class.getName());
     private static Calendar currentLog = null;
     private static FileHandler file = null;
 
@@ -85,7 +85,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
             }
             log.logp(level, "", "", "-----------------------------------------------------\n" + message, thrown);
         } catch (IOException | SecurityException e) {
-            Logger.getLogger(View.class.getName()).log(Level.SEVERE, e.getMessage(), e);
+            Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, e.getMessage(), e);
         }
     }
 

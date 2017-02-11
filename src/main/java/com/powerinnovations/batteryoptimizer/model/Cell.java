@@ -7,19 +7,19 @@ package com.powerinnovations.batteryoptimizer.model;
  * @author robbi.mount
  * @version 1.0 June 2016
  */
-public class Cell implements Comparable {
+public final class Cell implements Comparable {
 
     private final double impedance;
     private final String address;
-
+    
     /**
      * Constructor for the Cell object
      *
      * @param address the cell address within a pack.
      * @param impedance the impedance of the cell.
      */
-    public Cell(String address, double impedance) {
-        this.impedance = impedance;
+    public Cell(String address, String impedance) throws NumberFormatException {
+        this.impedance = Double.parseDouble(impedance);
         this.address = address;
     }
 
