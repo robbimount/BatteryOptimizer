@@ -25,12 +25,11 @@ public class Results extends javax.swing.JFrame {
         resultsTable.setModel(new resultModel(packs));
         decorate();
     }
-    
+
     private void decorate() {
         this.setTitle("Optimizer Results: Sorted by Impedance");
         URL url = ClassLoader.getSystemResource("logo.png");
-        Toolkit kit = Toolkit.getDefaultToolkit();
-        Image img = kit.createImage(url);
+        Image img = Toolkit.getDefaultToolkit().createImage(url);
         this.setIconImage(img);
     }
 

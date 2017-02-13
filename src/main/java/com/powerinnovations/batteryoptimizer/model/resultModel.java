@@ -13,25 +13,17 @@ import java.util.*;
  */
 public class resultModel extends AbstractTableModel {
 
-    private List<Pack> pcs;
+    private final List<Pack> packs;
     private final DecimalFormat df;
-
-    /**
-     * Default constructor.
-     */
-    public resultModel() {
-        this.df = new DecimalFormat("#0.00");
-        
-    }
 
     /**
      * Main constructor
      *
-     * @param pcs the list of Pack objects to be displayed
+     * @param packs the list of Pack objects to be displayed
      */
-    public resultModel(List<Pack> pcs) {
+    public resultModel(List<Pack> packs) {
         this.df = new DecimalFormat("#0.00");
-        this.pcs = pcs;
+        this.packs = packs;
     }
 
     /**
@@ -41,18 +33,17 @@ public class resultModel extends AbstractTableModel {
      */
     @Override
     public int getRowCount() {
-        return pcs.size();
-
+        return packs.size();
     }
 
     /**
-     * returns the column count.
+     * Returns the column count.
      *
      * @return the column count.
      */
     @Override
     public int getColumnCount() {
-        int size = pcs.get(0).getCellCount()+2; //numbe of cells plus two columns for line# and average
+        int size = packs.get(0).getCellCount() + 2; //numbe of cells plus two columns for line# and average
         return size;
     }
 
@@ -68,11 +59,11 @@ public class resultModel extends AbstractTableModel {
         @SuppressWarnings("UnusedAssignment")
         String value = "";
         if (columnIndex == 0) {
-            value = pcs.get(rowIndex).getID();
-        } else if (columnIndex == pcs.get(0).getCellCount()+1) {
-            value = df.format(pcs.get(rowIndex).calculateSpreadImp() * 100) + "%";
+            value = packs.get(rowIndex).getID();
+        } else if (columnIndex == packs.get(0).getCellCount() + 1) {
+            value = df.format(packs.get(rowIndex).calculateSpreadImp() * 100) + "%";
         } else {
-            value = pcs.get(rowIndex).getCells().get(columnIndex - 1).getAddress() + " (" + df.format(pcs.get(rowIndex).getCells().get(columnIndex - 1).getImpedance() * 1000) + " mΩ)";
+            value = packs.get(rowIndex).getCells().get(columnIndex - 1).getAddress() + " (" + df.format(packs.get(rowIndex).getCells().get(columnIndex - 1).getImpedance() * 1000) + " mΩ)";
         }
         return value;
 
@@ -88,7 +79,7 @@ public class resultModel extends AbstractTableModel {
     public String getColumnName(int column) {
         if (column == 0) {
             return "Pack:";
-        } else if (column == pcs.get(0).getCellCount()+1) {
+        } else if (column == packs.get(0).getCellCount() + 1) {
             return "Spread:";
         } else {
             return String.valueOf(column) + ":";
