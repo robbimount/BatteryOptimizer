@@ -1,6 +1,6 @@
 package com.powerinnovations.batteryoptimizer.view;
 
-import com.powerinnovations.batteryoptimizer.model.resultModel;
+import com.powerinnovations.batteryoptimizer.model.ResultModel;
 import com.powerinnovations.batteryoptimizer.model.Pack;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -22,7 +22,7 @@ public class Results extends javax.swing.JFrame {
      */
     public Results(List<Pack> packs) {
         initComponents();
-        resultsTable.setModel(new resultModel(packs));
+        resultsTable.setModel(new ResultModel(packs));
         decorate();
     }
 

@@ -29,7 +29,7 @@ import java.util.logging.SimpleFormatter;
  */
 public class ExceptionHandler implements UncaughtExceptionHandler {
 
-    private static final Logger log = Logger.getLogger(GUI.class.getName());
+    private static final Logger LOG = Logger.getLogger(GUI.class.getName());
     private static Calendar currentLog = null;
     private static FileHandler file = null;
 
@@ -52,7 +52,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
     public synchronized static void logEvent(Level level, String message, Throwable thrown) {
         try {
-            if (log.getHandlers().length == 0) {
+            if (LOG.getHandlers().length == 0) {
                 try {
                     new FileInputStream("Logs");
                 } catch (Exception e) {
@@ -64,12 +64,12 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
                             + String.valueOf(currentLog.get(Calendar.DATE)) + ".txt", true);
                     SimpleFormatter txt = new SimpleFormatter();
                     file.setFormatter(txt);
-                    log.addHandler(file);
+                    LOG.addHandler(file);
                 }
             } else if (Calendar.getInstance().get(Calendar.YEAR) == currentLog.get(Calendar.YEAR) && Calendar.getInstance().get(Calendar.MONTH) == currentLog.get(Calendar.MONTH) && Calendar.getInstance().get(Calendar.DATE) == currentLog.get(Calendar.DATE)) {
             } else {
                 try {
-                    log.removeHandler(file);
+                    LOG.removeHandler(file);
                     new FileInputStream("Logs");
                 } catch (SecurityException | FileNotFoundException e) {
                     File f = new File("Logs");
@@ -80,10 +80,10 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
                             + String.valueOf(currentLog.get(Calendar.DATE)) + ".txt", true);
                     SimpleFormatter txt = new SimpleFormatter();
                     file.setFormatter(txt);
-                    log.addHandler(file);
+                    LOG.addHandler(file);
                 }
             }
-            log.logp(level, "", "", "-----------------------------------------------------\n" + message, thrown);
+            LOG.logp(level, "", "", "-----------------------------------------------------\n" + message, thrown);
         } catch (IOException | SecurityException e) {
             Logger.getLogger(GUI.class.getName()).log(Level.SEVERE, e.getMessage(), e);
         }

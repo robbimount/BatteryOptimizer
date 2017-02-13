@@ -89,9 +89,9 @@ public final class Pack implements Comparable {
      */
     public Pack getClone() {
         Pack p = new Pack(id);
-        for (Cell c : cells) {
+        cells.stream().forEach((c) -> {
             p.addCell(c);
-        }
+        });
         return p;
     }
 
